@@ -1,0 +1,372 @@
+echo "# Risk-prediction-" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin https://github.com/TanyCM11/Risk-prediction-.git
+git push -u origin mainSET AUD1.AUDIT_2021_DEMO;
+  /* Convert Sex variable from character to numeric*/
+/* Convert Sex variable from character to numeric */
+if Sex = "Female" THEN Sex_num = 0;
+else if Sex = "Male" THEN Sex_num = 1;
+else if Sex = "Unknown" THEN Sex_num = 2;
+else Sex_num = .;
+/*Combining Sexnum=2 into either SexNum=0 or SexNum=1 */
+if Sex_num = 2 then Sex_num =0;
+ 
+/* Convert FirstRace variable from character to numeric */
+if FirstRace in ("Asian") THEN FirstRace_num = 1;
+else if FirstRace in ("Black or African American") THEN FirstRace_num = 2;
+else if FirstRace in ("White or Caucasian") THEN FirstRace_num = 3;
+else if FirstRace not in ("Asian", "Black or African American", "White or Caucasian") THEN FirstRace_num = 4;
+else FirstRace_num = .; /* set to missing if FirstRace is missing */
+ 
+/* Recode individuals with multiple races */
+if SecondRace ^= . or ThirdRace ^= . then FirstRace_num = 5;
+/* Convert Ethnicity variable from character to numeric */
+if Ethnicity in ("Hispanic, Latinx, or Spanish Origin", "Mexican, Mexican American, or Chicano/a") THEN Ethnicity_num = 1;
+else if Ethnicity in ("Not Hispanic, Latinx, or Spanish Origin") THEN Ethnicity_num = 2;
+else if Ethnicity not in ("Hispanic, Latinx, or Spanish Origin", "Mexican, Mexican American, or Chicano/a","Not Hispanic, Latinx, or Spanish Origin")  THEN Ethnicity_num = 3;
+else Ethnicity_num = .; /* set to missing if Ethnicity is missing */
+ 
+if FirstRace_num = 1 and Ethnicity_num = 2 then CombinedRaceEthnicity = 0; /* Asian - Non-Hispanic */
+else if FirstRace_num = 2 and Ethnicity_num = 2 then CombinedRaceEthnicity = 1; /* Black - Non-Hispanic */
+else if FirstRace_num = 3 and Ethnicity_num = 2 then CombinedRaceEthnicity = 2; /* White - Non-Hispanic */
+else if Ethnicity_num = 1 then CombinedRaceEthnicity = 3; /* Hispanic (any race) */
+else if ((FirstRace_num = 4 or FirstRace_num = 5) and Ethnicity_num = 2)or Ethnicity_num = 3 then CombinedRaceEthnicity = 4; /* Other - Non-Hispanic (including multiple races) */
+else if FirstRace_num =. or Ethnicity_num =. then CombinedRaceEthnicity = 5; /*Unknown*/
+else CombinedRaceEthnicity = .;
+ 
+/*Convert SCREEN_RESULT variable from character to numeric, NEW VARIABLE NAME IS screen_result_num */
+if screen_result = "Negative" then screen_result_num = 0;
+else screen_result_num = 1;
+ 
+/* Bin the Age variable into age groups starting at 12 with a group size of 20 */
+if 12 <= Age <= 31 then Age_group = 0;
+else if 32 <= Age <= 51 then Age_group = 1;
+else if 52 <= Age <= 71 then Age_group = 2;
+else if 72 <= Age <= 98 then Age_group = 3;
+else Age_group = .;
+ 
+/*Convert PatientDxSeverity variable from character to numeric*/
+IF PatientDxSeverity2021 IN ("Dependence", "Abuse", "Use", "Alcohol-related health problems") THEN NumDx = 0;
+ELSE NumDx = 1;
+run;
+/* Filter the dataset to include only individuals between ages 12 and 21 */
+data mytable_filtered_age;
+    set mytable;
+    if Age_group IN("12,13,14,15,16,17,18,19,20,21");
+run;
+ 
+/* Run the frequency analysis on the filtered dataset */
+PROC FREQ data=mytable_filtered_age;
+     tables NumDx*Age_group /NOCUM missing;
+RUN;
+ 
+DATA mytable;
+     SET AUD1.AUDIT_2021_DEMO;
+/* Convert Sex variable from character to numeric */
+if Sex = "Female" THEN Sex_num = 0;
+else if Sex = "Male" THEN Sex_num = 1;
+else if Sex = "Unknown" THEN Sex_num = 2;
+else Sex_num = .;
+/*Combining Sexnum=2 into either SexNum=0 or SexNum=1 */
+if Sex_num = 2 then Sex_num =0;
+ 
+/* Convert FirstRace variable from character to numeric */
+if FirstRace in ("Asian") THEN FirstRace_num = 1;
+else if FirstRace in ("Black or African American") THEN FirstRace_num = 2;
+else if FirstRace in ("White or Caucasian") THEN FirstRace_num = 3;
+else if FirstRace not in ("Asian", "Black or African American", "White or Caucasian") THEN FirstRace_num = 4;
+else FirstRace_num = .; /* set to missing if FirstRace is missing */
+ 
+/* Recode individuals with multiple races */
+if SecondRace ^= . or ThirdRace ^= . then FirstRace_num = 5;
+/* Convert Ethnicity variable from character to numeric */
+if Ethnicity in ("Hispanic, Latinx, or Spanish Origin", "Mexican, Mexican American, or Chicano/a") THEN Ethnicity_num = 1;
+else if Ethnicity in ("Not Hispanic, Latinx, or Spanish Origin") THEN Ethnicity_num = 2;
+else if Ethnicity not in ("Hispanic, Latinx, or Spanish Origin", "Mexican, Mexican American, or Chicano/a","Not Hispanic, Latinx, or Spanish Origin")  THEN Ethnicity_num = 3;
+else Ethnicity_num = .; /* set to missing if Ethnicity is missing */
+ 
+if FirstRace_num = 1 and Ethnicity_num = 2 then CombinedRaceEthnicity = 0; /* Asian - Non-Hispanic */
+else if FirstRace_num = 2 and Ethnicity_num = 2 then CombinedRaceEthnicity = 1; /* Black - Non-Hispanic */
+else if FirstRace_num = 3 and Ethnicity_num = 2 then CombinedRaceEthnicity = 2; /* White - Non-Hispanic */
+else if Ethnicity_num = 1 then CombinedRaceEthnicity = 3; /* Hispanic (any race) */
+else if ((FirstRace_num = 4 or FirstRace_num = 5) and Ethnicity_num = 2)or Ethnicity_num = 3 then CombinedRaceEthnicity = 4; /* Other - Non-Hispanic (including multiple races) */
+else if FirstRace_num =. or Ethnicity_num =. then CombinedRaceEthnicity = 5; /*Unknown*/
+else CombinedRaceEthnicity = .;
+ 
+/*Convert SCREEN_RESULT variable from character to numeric, NEW VARIABLE NAME IS screen_result_num */
+if screen_result = "Negative" then screen_result_num = 0;
+else screen_result_num = 1;
+ 
+/* Bin the Age variable into age groups starting at 12 with a group size of 20 */
+if 21 <= Age <= 33 then Age_group = 0;
+else if 34 <= Age <= 46 then Age_group = 1;
+else if 47 <= Age <= 59 then Age_group = 2;
+else if 60 <= Age <= 72 then Age_group = 3;
+else if 73 <= Age <= 98 then Age_group = 4;
+else Age_group = .;
+ 
+/*Convert PatientDxSeverity variable from character to numeric*/
+IF PatientDxSeverity2021 IN ("Dependence", "Abuse", "Use", "Alcohol-related health problems") THEN NumDx = 0;
+ELSE NumDx = 1;
+run;
+ 
+/* Create mytable_age data set and recoding Audit2 and Audit3 to 0 for Audit1=0 AGE 12*/
+data mytable_age;
+  set mytable;
+  if audit1 = 0 then do;
+    audit2 = 0;
+    audit3 = 0;
+  end;
+  if age ge 12 then output;
+run;
+/* Recoding Audit2 and Audit3 to 0 for Audit1=0 AGET able filtered 21 and oldest */
+data mytable_age;
+  set mytable;
+  if audit1 = 0 then do;
+    audit2 = 0;
+    audit3 = 0;
+  end;
+  if age ge 21 then output;
+run;
+ 
+data mytable_filtered;
+set mytable_age;
+where audit1 eq 0 or (audit1 > 0 and audit2 ne . and audit3 ne .);
+run;
+PROC FREQ data=mytable_filtered;
+     tables NumDx*Age_group /NOCUM missing;
+RUN;
+PROC FREQ data=mytable_filtered;
+     tables NumDx*Age_group /NOCUM missing;
+RUN;
+ 
+PROC SQL;
+select count(*) as nobs
+FROM mytable_filtered;
+QUIT;
+PROC FREQ data=mytable_filtered;
+     tables Age_group auditCalcTotal CombinedRaceEthnicity Sex_num NumDx /NOCUM missing;
+RUN;
+PROC FREQ data=mytable_filtered;
+     tables audit1 audit2 audit3 /NOCUM missing;
+RUN;
+ 
+/* Perform exploratory visual analysis of the variables */
+proc sgplot data=mytable_filtered;
+  density NumDx / type=kernel;
+  xaxis label='AUD Diagnosis';
+  yaxis label='Density';
+run;
+ 
+proc sgplot data=mytable_filtered;
+  histogram NumDx;
+  xaxis label='AUD Diagnosis' values=(0 1);
+  yaxis label='Frequency';
+run;
+ 
+/* Perform exploratory visual analysis of the variables */
+proc sgplot data=mytable_filtered;
+  density auditCalcTotal / type=kernel;
+  xaxis label='AUDIT-C Score';
+  yaxis label='Density';
+run;
+/* Perform exploratory visual analysis of the variables */
+proc sgplot data=mytable_filtered;
+  histogram Age_group;
+  discretelegend;
+  xaxis label='Age';
+  yaxis label='Frequency';
+run;
+ 
+proc sgplot data=mytable_filtered;
+    vbar Sex_num / response=NumDx stat=percent;
+    discretelegend;
+    xaxis label='Gender' values=(0 1) valuesformat=SexLabels.;
+    yaxis label='Percent';
+run;
+proc sgplot data=mytable_filtered;
+  vbar auditCalcTotal / response=NumDx stat=percent;
+  discretelegend;
+  xaxis label='Screen result';
+  yaxis label='Percent';
+run;
+proc sgplot data=mytable_filtered;
+  vbar CombinedRaceEthnicity / response=NumDx stat=percent;
+  discretelegend;
+  xaxis label='Race/Ethnicity';
+  yaxis label='Percent';
+run;
+ 
+proc sgplot data=mytable_filtered;
+  vbar Ethnicity_num / response=NumDx stat=percent;
+  discretelegend;
+  xaxis label='Ethnicity';
+  yaxis label='Percent';
+run;
+ 
+proc sgplot data=mytable_filtered;
+    vbar screen_result_num / response=NumDx stat=percent;
+    discretelegend;
+    xaxis label='Screen result' values=(0 1) valuesformat=ScreenResultLabels.;
+    yaxis label='Percent';
+run;
+ 
+/* Split the data into training and testing sets */
+proc surveyselect data=mytable_filtered out=mytable_train rate=0.7 seed=12345;
+run;
+ 
+proc surveyselect data=mytable_filtered out=mytable_test rate=0.3 seed=12345;
+run;
+ 
+/* Fit a logistic regression model on the training data */
+proc logistic data=mytable_train;
+   class Sex_num (ref='1')Age_group (ref='1') CombinedRaceEthnicity (ref='1');
+   model NumDx (Event='0')= Age_group Sex_num auditCalcTotal CombinedRaceEthnicity / selection=backward;/* Ethnicity_num FirstRace_num*/
+   output out=mytable_train_predicted p=predicted_probability;
+   store out=logis_model; /* Store the logistic model */
+run;
+ 
+/* Predict on the testing data */
+proc plm restore=logis_model noprint;
+   score data=mytable_test out=mytable_test_predicted predicted_probability / ILINK;
+run;
+ 
+/* Calculate the area under the ROC curve */
+proc logistic data=mytable_test_predicted DESCENDING PLOTS(only)=roc;
+     class Sex_num (ref='1')Age_group (ref='1') CombinedRaceEthnicity (ref='1');
+    model NumDx (Event='0')= Age_group Sex_num auditCalcTotal CombinedRaceEthnicity;/* Ethnicity_num FirstRace_num*/
+   output out=mytable_test_predicted PROC=roc_auc;
+run;
+ods graphics on;
+/* Calculate the area under the ROC curve */
+proc logistic data=mytable_test_predicted DESCENDING PLOTS(only)=roc;
+     class Sex_num (ref='1')Age_group (ref='1') CombinedRaceEthnicity (ref='1');
+     model NumDx (Event='0')=Age_group Sex_num auditCalcTotal CombinedRaceEthnicity;/* Ethnicity_num FirstRace_num*/
+run;
+ 
+/* Calculate performance metrics on testing data set */
+proc logistic data=mytable_test_predicted;
+   class Sex_num (ref='1')Age_group (ref='1') CombinedRaceEthnicity (ref='1');
+   model NumDx (Event='0')= Age_group Sex_num auditCalcTotal CombinedRaceEthnicity;
+   output out=test_predicted p=prob;
+run;
+Determine the threshold for classifying the predicted probability */
+data test_predicted;
+    set test_predicted;
+    predicted_class = (prob > 0.5); /* THIS calculation W/the threshold (0.5) */
+run;
+ 
+/* Calculate AUC */
+proc logistic data=test_predicted plots(only)=roc;
+    model NumDx(event='0') = prob;
+    roc 'roc';
+    ods select ROCcurve;
+    ods output ROCCurve = auc;
+run;
+ 
+/* Calculate confusion matrix */
+proc freq data=test_predicted;
+    tables NumDx*predicted_class / noprint out=conf_matrix;
+run;
+ 
+/* Add a format statement for the predicted_class variable */
+proc format;
+    value binfmt 0='0' 1='1';
+run;
+ 
+/* Apply the format to the predicted_class variable */
+data test_predicted;
+    set test_predicted;
+    format predicted_class binfmt.;
+run;
+ 
+/* Compute performance metrics */
+data performance_metrics;
+  set conf_matrix end=last;
+  retain TP TN FP FN;
+  if NumDx=1 and predicted_class=1 then TP=Count;
+  else if NumDx=0 and predicted_class=0 then TN=Count;
+  else if NumDx=1 and predicted_class=0 then FN=Count;
+  else if NumDx=0 and predicted_class=1 then FP=Count;
+  if last then do;
+    Acc=(TP+TN)/(TP+TN+FP+FN);
+    Sensitivity = ifn((TP+FN)>0, TP/(TP+FN), .);
+    Specificity = ifn((TN+FP)>0, TN/(TN+FP), .);
+    Precision = ifn((TP+FP)>0, TP/(TP+FP), .);
+    F1=2*Precision*Sensitivity/(Precision+Sensitivity);
+    output;
+  end;
+run;
+/* Print performance metrics */
+proc print data=performance_metrics;
+    var Acc Sensitivity Specificity Precision F1;
+run;
+ 
+/* Append AUC to performance_metrics */
+data performance_metrics;
+    merge performance_metrics auc;
+    if _n_=1;
+    AUC=roc;
+run;
+ 
+/* Print performance metrics */
+proc print data=performance_metrics;
+    var Acc Sensitivity Specificity Precision F1 AUC;
+run;
+ 
+data cases_missing_values;
+     set mytable_filtered;
+     if Audit1 > 0 and (Audit2= . or Audit3 =.);
+RUN;
+ 
+proc surveyselect data=cases_missing_values
+     method=srs
+     n=100
+     seed=1234
+     out=random_sample;
+RUN;
+PROC PRINT DATA=random_sample;
+     var Audit1 Audit2 Audit3 DateValue PatientEpicId FlowsheetTemplateDisplayName FlowsheetTemplateEpicId EncounterEpicCsn PrimaryMrn DepartmentName DepartmentEpicId;
+RUN;
+ 
+/* Set the path and filename of the Excel file */
+%let excel_file_path = \\vfhomefls01\tcerrato\random_sample.xlsx;
+ 
+/* Export the SAS dataset to Excel */
+proc export data=random_sample
+  outfile=\\vfhomefls01\tcerrato\random_sample.xlsx
+  dbms=xlsx
+  replace;
+run;
+ 
+/* Counting number of missing values in Audit2 and Audit3 */
+proc sql;
+  select count(*) as missing_count
+  from mytable_age
+  where Audit1 > 0 and (Audit2 = . or Audit3 = .);
+quit;
+/*initial Age_group table*/
+DATA mytable_age;
+SET mytable;
+if Age_group= . THEN DELETE;
+RUN;
+PROC SQL;
+select count(*) as nobs
+FROM mytable_age;
+QUIT;
+/* Check the distribution of the new CombinedRaceEthnicity variable */
+PROC FREQ data=mytable_age;
+    tables CombinedRaceEthnicity/ missing;
+run;
+PROC FREQ data=mytable_age;
+    tables Age_group/ missing;
+run;
+PROC MEANS data=mytable_age NMISS;
+    var auditCalcTotal;
+run;
+PROC FREQ data=mytable_age;
+    tables Sex_num/ missing;
+run;
