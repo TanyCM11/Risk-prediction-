@@ -4,7 +4,7 @@ git add README.md
 git commit -m "first commit"
 git branch -M main
 git remote add origin https://github.com/TanyCM11/Risk-prediction-.git
-git push -u origin mainSET AUD1.AUDIT_2021_DEMO;
+git push -u origin mainSET XXXXXX;
   /* Convert Sex variable from character to numeric*/
 /* Convert Sex variable from character to numeric */
 if Sex = "Female" THEN Sex_num = 0;
@@ -333,11 +333,11 @@ PROC PRINT DATA=random_sample;
 RUN;
  
 /* Set the path and filename of the Excel file */
-%let excel_file_path = \\vfhomefls01\tcerrato\random_sample.xlsx;
+%let excel_file_path = XXXXX;
  
 /* Export the SAS dataset to Excel */
 proc export data=random_sample
-  outfile=\\vfhomefls01\tcerrato\random_sample.xlsx
+  outfile=XXXXX
   dbms=xlsx
   replace;
 run;
